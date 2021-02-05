@@ -33,10 +33,8 @@ def render_file_lines(filelines: List[FileLine]):
         result += str(fileline.line_number) + " " + fileline.line_text + "\n"
     return result
 
-def main(args):
+def main(args, filelines):
     # Get the text to search for based on args.searcharea
-    filelines = sys.stdin.readlines()
-    print(filelines)
     lines = get_lines(args.searcharea.split(','), filelines)
 
     # Use grep
@@ -51,7 +49,8 @@ def main(args):
 
     # Expand to args.returnarea
 
-    print(render_file_lines(grepped_lines), end='')
+    return grepped_lines
+    # print(render_file_lines(grepped_lines), end='')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Markdown aware grep')
@@ -67,4 +66,5 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    main(args)
+    grepped_lines = main(args, sys.stdin.readlines())
+    print(render_file_lines(grepped_lines), end='')
