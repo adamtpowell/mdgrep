@@ -1,6 +1,6 @@
 # mdgrep
 
-A markdown aware searching tool.
+A markdown aware searching tool. WIP WIP WIP
 
 ## Folder Structure
 
