@@ -5,8 +5,8 @@ from structures import FoundSegment
 
 
 class UnitFilter:
-    def filter(self, line: Optional[str]):
-        return line
+    def filter(self, line_number: int, line: Optional[str]):
+        return [FoundSegment(line_number,0,line)]
 
 def CodeBlockFilterFactory(give_in_block: bool):
     class CodeBlockFilter:
@@ -67,9 +67,9 @@ def LinkFilterFactory(link_printer):
             result = [] 
             for match in link_regex.finditer(line.text):
                 if not match is None:
-                   link_text = match.group(0) # TODO: Reimplement link printer
-                   link_position = match.pos
-                   result.append(FoundSegment(line_number, link_position, link_text))
+                    link_text = link_printer(match.groups()) # TODO: Reimplement link printer
+                    link_position = match.pos
+                    result.append(FoundSegment(line_number, link_position, link_text))
 
             return result
     return LinkFilter
