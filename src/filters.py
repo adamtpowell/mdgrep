@@ -5,7 +5,7 @@ from structures import FoundSegment
 
 
 class UnitFilter:
-    def filter(self, line_number: int, line: Optional[str]):
+    def filter(self, line_number: int, line: Optional[str]) -> List[FoundSegment]:
         return [FoundSegment(line_number,0,line)]
 
 def CodeBlockFilterFactory(give_in_block: bool):
@@ -62,8 +62,6 @@ def LinkFilterFactory(link_printer):
                 
             line = codeblock_segments[0]
             
-            # TODO: make this return a list of FoundSegments instead of the string result.
-            # should be pretty easy, just loop through links and add to the list instead of adding to result
             result = [] 
             for match in link_regex.finditer(line.text):
                 if not match is None:
