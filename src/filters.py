@@ -1,38 +1,77 @@
-from typing import Optional
 import re
+from typing import List, Optional
+
+from structures import FoundSegment
+
 
 class UnitFilter:
-    def filter(self, line: str):
+    def filter(self, line: Optional[str]):
         return line
+
+def CodeBlockFilterFactory(give_in_block: bool):
+    class CodeBlockFilter:
+        def __init__(self):
+            self.in_code_block = False
+        def filter(self, line_number: int, line: Optional[str]) -> List[FoundSegment]:
+            if line is None:
+                return []
+
+            if line == "```":
+                self.in_code_block = not self.in_code_block
+                return []
+            if self.in_code_block == give_in_block:
+                return [FoundSegment(line_number,0,line)] # If the line is (or is out of) a code block, return an array with a single line
+            else:
+                return []
+    return CodeBlockFilter
 
 def HeadingFilterFactory(heading_level: int):
     class Heading:
-        def filter(self, line: str) -> Optional[str]:
-            if len(line) == 0:
-                return None
+        def __init__(self):
+            self.codeblockfilter = CodeBlockFilterFactory(False)()
+        def filter(self, line_number: int, line: Optional[str]) -> List[FoundSegment]:
+            codeblock_segments = self.codeblockfilter.filter(line_number, line)
+            if len(codeblock_segments) != 1: # There should only be one segment (a whole line) if there is a match
+                return []
+                
+            line_segment = codeblock_segments[0]
 
             count = 0
-            while line[count] == "#":
+            while line_segment.text[count] == "#":
                 count += 1
             valid = (heading_level != 0 and count == heading_level) or (heading_level == 0 and count != 0)
 
-            return line if valid else None
+            return [FoundSegment(line_number, 0, line)] if valid else [] # headers take up the full line no matter what
 
     return Heading
 
 # UnderHeadingFilter
 # Keeps track of which heading level it is under to see whether to keep a line
 
+# link_printer is a function which will format the link for printing
+# TODO: There is a bug in this function, where it will claim the position as the position of the LINK, not the match.
 def LinkFilterFactory(link_printer):
     link_regex = re.compile(r'\[([^\]]*)\]\(([^\]]*)\)')
     class LinkFilter:
-        def filter(self, line:str):
-           result = ""
-           links = link_regex.findall(line) 
-           for link in links:
-               if not link is None:
-                   result += link_printer(link)
-           return result if result != "" else None
+        def __init__(self):
+            self.codeblockfilter = CodeBlockFilterFactory(False)()
+        def filter(self, line_number: int, line:str) -> List[FoundSegment]:
+            codeblock_segments = self.codeblockfilter.filter(line_number, line)
+            if len(codeblock_segments) != 1: # There should only be one segment (a whole line) if there is a match
+                return []
+                
+            line = codeblock_segments[0]
+            
+            # TODO: make this return a list of FoundSegments instead of the string result.
+            # should be pretty easy, just loop through links and add to the list instead of adding to result
+            result = [] 
+            for match in link_regex.finditer(line.text):
+                if not match is None:
+                   link_text = match.group(0) # TODO: Reimplement link printer
+                   link_position = match.pos
+                   result.append(FoundSegment(line_number, link_position, link_text))
+
+            return result
     return LinkFilter
 
 # BoldFilter
@@ -48,7 +87,9 @@ all = {
     'heading4': HeadingFilterFactory(4),
     'heading5': HeadingFilterFactory(5),
     'heading6': HeadingFilterFactory(6),
-    'link': LinkFilterFactory(lambda link: "[" + link[0] + "]" + "(" + link[1] + ")"),
+    'links': LinkFilterFactory(lambda link: "[" + link[0] + "]" + "(" + link[1] + ")"),
     'linktarget': LinkFilterFactory(lambda link: link[0]),
     'linktext': LinkFilterFactory(lambda link: link[1]),
+    'insidecodeblock': CodeBlockFilterFactory(True),
+    'outsidecodeblock': CodeBlockFilterFactory(False),
 }
