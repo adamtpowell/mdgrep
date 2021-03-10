@@ -8,6 +8,7 @@ import filters
 import re
 import sys
 from structures import FileLine, FoundSegment
+import returnareas
 
 # Returns all of the matches from the filter stack
 # Matches from before the last filter are recombined into a line for future filters
@@ -34,11 +35,10 @@ def render_file_lines(filelines: List[FileLine]):
         result += str(fileline.line_number) + " " + fileline.line_text + "\n"
     return result
 
-def main(args, filelines) -> List[FoundSegment]:
+def main(args, filelines) -> List[str]:
     # Get the text to search for based on args.searcharea
     matches = get_matches(args.searcharea.split(','), filelines)
 
-    # Use grep TODO: Make this properly by the line segment
     if args.regex is None:
         grepped_matches = matches
     else:
@@ -49,21 +49,33 @@ def main(args, filelines) -> List[FoundSegment]:
                 grepped_matches.append(match)
 
     # Expand to args.returnarea
+    # How do we handle duplicate return areas?
+    # 1. Don't. Return duplicate areas.
+    # 2. Check strict equality on areas, and return one of each
+    # We have a flag between these, defaulting to 2!
+    expansions = []
 
-    return grepped_matches
-    # print(render_file_lines(grepped_lines), end='')
+    for match in grepped_matches:
+        expansions.append(returnareas.all[args.returnarea](match, filelines))
+
+    return list(set(expansions)) # TODO: Switch to list set only when the flag is set!
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Markdown aware grep')
     parser.add_argument(
-            '--regex',
-            required=False,
-            help='The regex to use'
+        '--regex',
+        required=False,
+        help='The regex to use'
     )
     parser.add_argument(
-            '--searcharea',
-            default='all',
-            help='The area(s) in which to search. Includes: all,headings'
+        '--searcharea',
+        default='all',
+        help='The area(s) in which to search. Includes: all,headings'
+    )
+    parser.add_argument(
+        '--returnarea',
+        default='structure',
+        help='The structure to return'
     )
     args = parser.parse_args()
 

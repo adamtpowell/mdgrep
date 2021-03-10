@@ -66,7 +66,7 @@ def LinkFilterFactory(link_printer):
             for match in link_regex.finditer(line.text):
                 if not match is None:
                     link_text = link_printer(match.groups()) # TODO: Reimplement link printer
-                    link_position = match.pos
+                    link_position = match.start()
                     result.append(FoundSegment(line_number, link_position, link_text))
 
             return result

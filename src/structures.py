@@ -9,3 +9,8 @@ class FoundSegment(NamedTuple):
     line_number: int
     line_position: int
     text: str
+    
+class Expansion(NamedTuple):
+    line_number: int
+    line_position: int
+    text: str
