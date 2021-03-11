@@ -1,7 +1,6 @@
 from dataclasses import dataclass
-from re import S
-import main
 from structures import Expansion
+import main
 
 # argparse generates a class-like object, not a dict-like object, so mock it with a dataclass
 @dataclass
@@ -104,3 +103,68 @@ def test_structure_vs_line():
     assert sorted(line_grep) == sorted([ # Only returns one result, since duplicate lines
         Expansion(1, 0, "[https://cat.cat](Wow I like felines) this part is after the link! [https://dog.dog](This is a second link!)"),
     ])
+    
+def test_section1_full_file():
+    text = [
+        "# Heading 1",
+        "Line 1",
+        "Line 2",
+        "Line 3",
+        "## Heading 2",
+        "line 5",
+    ]
+    grep = main.main(Args("all", None, "section1"), text)
+    assert sorted(grep) == sorted([
+        Expansion(0, 0, "\n".join(text))
+    ])
+    
+def test_section2():
+    text = [
+        "# Heading 1",
+        "Line 1",
+        "Line 2",
+        "Line 3",
+        "## Heading 2",
+        "line 5",
+    ]
+    grep = main.main(Args("all", "5", "section2"), text)
+    assert sorted(grep) == sorted([
+        Expansion(4, 0, "\n".join([
+            "## Heading 2",
+            "line 5"
+        ]))
+    ]) 
+    
+def test_section2_from_section_title():
+    text = [
+        "# Heading 1",
+        "Line 1",
+        "Line 2",
+        "Line 3",
+        "## Heading 2",
+        "line 5",
+    ]
+    grep = main.main(Args("heading2", None, "section2"), text)
+    assert sorted(grep) == sorted([
+        Expansion(4, 0, "\n".join([
+            "## Heading 2",
+            "line 5"
+        ]))
+    ])
+
+# TODO: This behavior of crashing is correct for now, but this should fail silently and return nothing instead of crashing the program
+def test_getting_section_from_outside_section_fails():
+    text = [
+        "# Heading 1",
+        "Line 1",
+        "Line 2",
+        "Line 3",
+        "## Heading 2",
+        "line 5",
+    ]
+    try:
+        main.main(Args("heading1", None, "section2"), text)
+    except Exception as e:
+        assert str(e) == "Heading of level 2 not found!"
+    else:
+        assert False, "Call to main.main should have failed"
