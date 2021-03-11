@@ -76,6 +76,18 @@ def LinkFilterFactory(link_printer):
 
 # ItalicFilter
 
+# Filters related to tables
+
+# ul>li
+
+# ol>li
+
+# todo item
+
+# Checked todo item
+
+# Unchecked todo item
+
 all = {
     'all': UnitFilter,
     'headings': HeadingFilterFactory(0),

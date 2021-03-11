@@ -47,3 +47,9 @@ all = {
     'section5': under_heading_expansion_factory(5),
     'section6': under_heading_expansion_factory(6),
 }
+
+# Expansions TODO:
+# * Codeblock
+# * File
+# * Table
+# * List item (with subitems)
