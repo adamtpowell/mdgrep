@@ -8,9 +8,10 @@ class Args:
     searcharea: str
     regex: str
     returnarea: str
+    deduplicate: str
 
 def test_unit_filter():
-    grepped_segments = main.main(Args("all", None, "structure"),[
+    grepped_segments = main.main(Args("all", None, "structure", "true"),[
         "Line 1",
         "Line 2",
     ])
@@ -20,14 +21,14 @@ def test_unit_filter():
     ])
 
 def test_headings_and_grep():
-    grepped_segments = main.main(Args("headings", "cat", "structure"),[
+    grepped_segments = main.main(Args("headings", "cat", "structure", "true"),[
         "# heading 1",
         "# heading cat"
     ])
     assert grepped_segments[0].text == "# heading cat"
 
 def test_headings_in_codeblock():
-    greppedlines = main.main(Args("headings", None, "structure"),[
+    greppedlines = main.main(Args("headings", None, "structure", "true"),[
         "# heading 1",
         "```",
         "# heading in code block",
@@ -41,7 +42,7 @@ def test_headings_in_codeblock():
 
 def test_headings_by_level():
     for i in range(1,7):
-        grepped_lines = main.main(Args(f"heading{i}", None, "structure"),[
+        grepped_lines = main.main(Args(f"heading{i}", None, "structure", "true"),[
             "# Heading 1",
             "## Heading 2",
             "Some text",
@@ -55,7 +56,7 @@ def test_headings_by_level():
         assert grepped_lines[0].text == ("#" * i) + f" Heading {i}"
 
 def test_links_and_grep():
-    greppedlines = main.main(Args("links", "cat|dog", "structure"),[
+    greppedlines = main.main(Args("links", "cat|dog", "structure", "true"),[
         "# Heading 1",
         "[https://cat.cat](Wow I like felines)",
         "# Heading 2",
@@ -67,7 +68,7 @@ def test_links_and_grep():
     ])
 
 def test_link_targets_and_grep():
-    greppedlines = main.main(Args("linktarget", "cat|reptiles", "structure"),[
+    greppedlines = main.main(Args("linktarget", "cat|reptiles", "structure", "true"),[
         "# Heading 1",
         "[https://cat.cat](Wow I like felines)",
         "# Heading 2",
@@ -79,7 +80,7 @@ def test_link_targets_and_grep():
     ])
 
 def test_link_text_and_grep():
-    greppedlines = main.main(Args("linktext", "cat|canines|reptiles|dog", "structure"),[ # Ignore any text not in link text
+    greppedlines = main.main(Args("linktext", "cat|canines|reptiles|dog", "structure", "true"),[ # Ignore any text not in link text
         "# Heading 1",
         "[https://cat.cat](Wow I like felines)",
         "# Heading 2",
@@ -93,8 +94,8 @@ def test_structure_vs_line():
         "# Heading 1",
         "[https://cat.cat](Wow I like felines) this part is after the link! [https://dog.dog](This is a second link!)"
     ]
-    structure_grep = main.main(Args("links", None, "structure"), text)
-    line_grep = main.main(Args("links", None, "line"), text)
+    structure_grep = main.main(Args("links", None, "structure", "true"), text)
+    line_grep = main.main(Args("links", None, "line", "true"), text)
     
     assert sorted(structure_grep) == sorted([
         Expansion(1, 0, "[https://cat.cat](Wow I like felines)"),
@@ -113,7 +114,7 @@ def test_section1_full_file():
         "## Heading 2",
         "line 5",
     ]
-    grep = main.main(Args("all", None, "section1"), text)
+    grep = main.main(Args("all", None, "section1", "true"), text)
     assert sorted(grep) == sorted([
         Expansion(0, 0, "\n".join(text))
     ])
@@ -127,7 +128,7 @@ def test_section2():
         "## Heading 2",
         "line 5",
     ]
-    grep = main.main(Args("all", "5", "section2"), text)
+    grep = main.main(Args("all", "5", "section2", "true"), text)
     assert sorted(grep) == sorted([
         Expansion(4, 0, "\n".join([
             "## Heading 2",
@@ -144,7 +145,7 @@ def test_section2_from_section_title():
         "## Heading 2",
         "line 5",
     ]
-    grep = main.main(Args("heading2", None, "section2"), text)
+    grep = main.main(Args("heading2", None, "section2", "true"), text)
     assert sorted(grep) == sorted([
         Expansion(4, 0, "\n".join([
             "## Heading 2",
@@ -163,8 +164,19 @@ def test_getting_section_from_outside_section_fails():
         "line 5",
     ]
     try:
-        main.main(Args("heading1", None, "section2"), text)
+        main.main(Args("heading1", None, "section2", "true"), text)
     except Exception as e:
         assert str(e) == "Heading of level 2 not found!"
     else:
         assert False, "Call to main.main should have failed"
+        
+def test_deduplicate():
+    text = [
+        "# Heading 1",
+        "Line 1",
+        "Line 2",
+    ]
+    grep = main.main(Args("all","Line","section1", "true"), text)
+    assert len(grep) == 1
+    grep_dedup = main.main(Args("all","Line","section1","false"), text)
+    assert len(grep_dedup) == 2

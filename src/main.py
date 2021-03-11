@@ -58,7 +58,12 @@ def main(args, filelines) -> List[str]:
     for match in grepped_matches:
         expansions.append(returnareas.all[args.returnarea](match, filelines))
 
-    return list(set(expansions)) # TODO: Switch to list set only when the flag is set!
+    if args.deduplicate == "true":
+        return list(set(expansions))
+    elif args.deduplicate == "false":
+        return expansions
+    else:
+        raise ValueError("Invalid value for deduplicate. Please use true or false")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Markdown aware grep')
@@ -66,6 +71,11 @@ if __name__ == "__main__":
         '--regex',
         required=False,
         help='The regex to use'
+    )
+    parser.add_argument(
+        '--deduplicate',
+        default='true',
+        help='true or false; whether to remove duplicate matches'
     )
     parser.add_argument(
         '--searcharea',
