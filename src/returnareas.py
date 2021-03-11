@@ -1,20 +1,20 @@
 from typing import List
 from structures import Expansion, FoundSegment
 
-def LineArea(match: FoundSegment, filelines: List[str]) -> Expansion:
+def line_expansion(match: FoundSegment, filelines: List[str]) -> Expansion:
     return Expansion(match.line_number, 0, filelines[match.line_number])
 
-def StructureArea(match: FoundSegment, filelines: List[str]) -> Expansion:
+def structure_expansion(match: FoundSegment, filelines: List[str]) -> Expansion:
     return Expansion(match.line_number, match.line_position, match.text)
 
-def UnderHeadingFactory(heading_level: int):
+def under_heading_expansion_factory(heading_level: int):
     def get_heading_level(line_number: int, filelines: List[str]):
         count = 0
         while count < len(filelines[line_number]) and filelines[line_number][count] == "#":
             count += 1
         return count if count != 0 else False # Return a falsy value if there is no heading, otherwise the heading level
 
-    def UnderHeading(match: FoundSegment, filelines: List[str]) -> Expansion:
+    def under_heading_expansion(match: FoundSegment, filelines: List[str]) -> Expansion:
         # Move up to the closet instance of the given heading level
         line_number = match.line_number
         while get_heading_level(line_number, filelines) != heading_level and line_number != 0:
@@ -35,15 +35,15 @@ def UnderHeadingFactory(heading_level: int):
             
         return Expansion(starting_line, 0, "\n".join(return_lines))
 
-    return UnderHeading
+    return under_heading_expansion
 
 all = {
-    'line': LineArea,
-    'structure': StructureArea,
-    'section1': UnderHeadingFactory(1),
-    'section2': UnderHeadingFactory(2),
-    'section3': UnderHeadingFactory(3),
-    'section4': UnderHeadingFactory(4),
-    'section5': UnderHeadingFactory(5),
-    'section6': UnderHeadingFactory(6),
+    'line': line_expansion,
+    'structure': structure_expansion,
+    'section1': under_heading_expansion_factory(1),
+    'section2': under_heading_expansion_factory(2),
+    'section3': under_heading_expansion_factory(3),
+    'section4': under_heading_expansion_factory(4),
+    'section5': under_heading_expansion_factory(5),
+    'section6': under_heading_expansion_factory(6),
 }
