@@ -1,32 +1,16 @@
 # mdgrep
 
-A markdown aware searching tool. WIP WIP WIP
+A markdown aware searching tool.
 
-## Folder Structure
+Works in three steps:
+1. Filtering; filter the markdown file for just the items you want (a specific heading level, link text, unfilled todo items, etc.)
+2. Grepping; use a regex to search through each filtered section.
+3. Expansion; expanding from each grepped match to a given area (could be the whole line, the link the match is from, the current section of the file, etc.)
 
-```
-├── filters.py # Contains filters for --searcharea
-├── main.py
-├── readme.md
-└── tests # Test code, needs bats installed to run
-    ├── input.md
-    └── tests.bats
-```
+## Why
 
-2 directories, 6 files
+To make it easy to write ad-hoc syntax for adding functionality and interacting with markdown-based wikis. It may also be useful for things like literate programming, static site generation, etc. 
 
-## Examples
+The main improvements over just grepping for lines is the ability to pull out sections of the document, ignore lines that fall inside codeblocks, and saving time when writing regexes to filter for certain features in the markdown.
 
-### Search through image alttext for images of cats
-mdgrep 'cat' --searchfilters alttext
-
-### Subsections which talk about cats
-Returns the full text of every level (everything directly under the current heading) which uses 'cat' anywhere in the text.
-
-cat * | mdgrep 'cat' --returnarea aroundlevel
-
-### Print the names of every file which is not linked to TODO: Remove psuedocode
-```
-for file in files:
-    cat * | mdgrep 'file' --searchfilters linktarget != empty
-```
+The design aims to be faster (but less correct) than parsing the markdown fully.
