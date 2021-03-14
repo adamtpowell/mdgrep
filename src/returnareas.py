@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from structures import Expansion, FoundSegment
 
 def line_expansion(match: FoundSegment, filelines: List[str]) -> Expansion:
@@ -14,14 +14,14 @@ def under_heading_expansion_factory(heading_level: int):
             count += 1
         return count if count != 0 else False # Return a falsy value if there is no heading, otherwise the heading level
 
-    def under_heading_expansion(match: FoundSegment, filelines: List[str]) -> Expansion:
+    def under_heading_expansion(match: FoundSegment, filelines: List[str]) -> Optional[Expansion]:
         # Move up to the closet instance of the given heading level
         line_number = match.line_number
         while get_heading_level(line_number, filelines) != heading_level and line_number != 0:
             line_number -= 1
             
         if line_number == 0 and get_heading_level(line_number, filelines) != heading_level:
-            raise ValueError(f"Heading of level {heading_level} not found!")
+            return None
 
         starting_line = line_number
         

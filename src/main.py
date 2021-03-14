@@ -56,7 +56,9 @@ def main(args, filelines) -> List[str]:
     expansions = []
 
     for match in grepped_matches:
-        expansions.append(returnareas.all[args.returnarea](match, filelines))
+        expansion = returnareas.all[args.returnarea](match, filelines)
+        if not expansion is None:
+            expansions.append(expansion)
 
     if args.deduplicate == "true":
         return list(set(expansions))

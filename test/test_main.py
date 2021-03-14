@@ -153,7 +153,6 @@ def test_section2_from_section_title():
         ]))
     ])
 
-# TODO: This behavior of crashing is correct for now, but this should fail silently and return nothing instead of crashing the program
 def test_getting_section_from_outside_section_fails():
     text = [
         "# Heading 1",
@@ -163,12 +162,8 @@ def test_getting_section_from_outside_section_fails():
         "## Heading 2",
         "line 5",
     ]
-    try:
-        main.main(Args("heading1", None, "section2", "true"), text)
-    except Exception as e:
-        assert str(e) == "Heading of level 2 not found!"
-    else:
-        assert False, "Call to main.main should have failed"
+    grep = main.main(Args("heading1", None, "section2", "true"), text)
+    assert len(grep) == 0
         
 def test_deduplicate():
     text = [
