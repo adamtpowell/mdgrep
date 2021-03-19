@@ -175,3 +175,23 @@ def test_deduplicate():
     assert len(grep) == 1
     grep_dedup = main.main(Args("all","Line","section1","false"), text)
     assert len(grep_dedup) == 2
+    
+def test_codeblock_expansion():
+    codeblock = [
+        "This place is not a place of honour",
+        "No highly esteemed deed is commemorated here"
+    ]
+    text = [
+        "# Heading",
+        "Paragraph",
+        "```poem",
+        *codeblock,
+        "```",
+        "Ending paragraph",
+    ]
+    
+    print("\n".join(text))
+    
+    grep = main.main(Args("insidecodeblock", "honour", "codeblock", "false"), text)
+    assert len(grep) == 1
+    assert grep[0] == Expansion(3, 0, "\n".join(codeblock))

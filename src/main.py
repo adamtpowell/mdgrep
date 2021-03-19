@@ -36,9 +36,10 @@ def render_file_lines(filelines: List[FileLine]):
     return result
 
 def main(args, filelines) -> List[str]:
-    # Get the text to search for based on args.searcharea
+    # apply --searchareas
     matches = get_matches(args.searcharea.split(','), filelines)
 
+    # Apply --regex
     if args.regex is None:
         grepped_matches = matches
     else:
@@ -48,13 +49,8 @@ def main(args, filelines) -> List[str]:
             if len(match_grep_matches) != 0:
                 grepped_matches.append(match)
 
-    # Expand to args.returnarea
-    # How do we handle duplicate return areas?
-    # 1. Don't. Return duplicate areas.
-    # 2. Check strict equality on areas, and return one of each
-    # We have a flag between these, defaulting to 2!
+    # apply --returnarea
     expansions = []
-
     for match in grepped_matches:
         expansion = returnareas.all[args.returnarea](match, filelines)
         if not expansion is None:

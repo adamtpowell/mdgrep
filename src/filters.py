@@ -16,7 +16,7 @@ def CodeBlockFilterFactory(give_in_block: bool):
             if line is None:
                 return []
 
-            if line == "```":
+            if line[0:3] == "```":
                 self.in_code_block = not self.in_code_block
                 return []
             if self.in_code_block == give_in_block:

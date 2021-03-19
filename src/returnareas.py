@@ -7,6 +7,28 @@ def line_expansion(match: FoundSegment, filelines: List[str]) -> Expansion:
 def structure_expansion(match: FoundSegment, filelines: List[str]) -> Expansion:
     return Expansion(match.line_number, match.line_position, match.text)
 
+def codeblock_expansion(match: FoundSegment, filelines: List[str]) -> Expansion:
+    line_number = match.line_number
+    while filelines[line_number][0:3] != "```":
+        line_number -= 1
+        if line_number < 0:
+            return None # No codeblock start is above this block
+        
+    line_number += 1 # Move under the codeblock start
+    
+    top_line = line_number
+
+    while filelines[line_number][0:3] != "```":
+        line_number += 1
+        if line_number >= len(filelines):
+            return None # The codeblock never ends TODO: Throw error on invalid markdown
+        
+    line_number -= 1 # Move above the codeblock end
+    
+    bottom_line = line_number
+    
+    return Expansion(top_line, 0, "\n".join(filelines[top_line:bottom_line+1]))
+
 def under_heading_expansion_factory(heading_level: int):
     def get_heading_level(line_number: int, filelines: List[str]):
         count = 0
@@ -40,6 +62,7 @@ def under_heading_expansion_factory(heading_level: int):
 all = {
     'line': line_expansion,
     'structure': structure_expansion,
+    'codeblock': codeblock_expansion,
     'section1': under_heading_expansion_factory(1),
     'section2': under_heading_expansion_factory(2),
     'section3': under_heading_expansion_factory(3),
@@ -53,3 +76,4 @@ all = {
 # * File
 # * Table
 # * List item (with subitems)
+# * Paragraph
